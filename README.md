@@ -7,7 +7,6 @@ A tiny WPF app to extract archives using bundled 7-Zip components for quick extr
 - Progress bar with live 7-Zip output and cancel
 - Drag & drop or launch via file association (passes archive path as first argument)
 - Settings to choose 7-Zip executable path
-- Optional per-user "Open with" registration for .zip, .7z, .rar (no silent default changes)
 
 ## Requirements
 Runtime (end users):
