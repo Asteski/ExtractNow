@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  <UseWindowsForms>true</UseWindowsForms>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <Platforms>x64</Platforms>
+    <AssemblyName>ExtractNow</AssemblyName>
+    <RootNamespace>ExtractNow</RootNamespace>
+    <ApplicationIcon>assets\icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- Bundle any files in the local 7zip folder with the app output -->
+  <ItemGroup>
+    <Content Include="7zip\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <None Include="assets\icon.ico" />
+  </ItemGroup>
+
+  <!-- Optionally clean default build outputs after publish to keep only Releases -->
+  <PropertyGroup>
+    <CleanBuildOutputsOnPublish Condition="'$(CleanBuildOutputsOnPublish)' == ''">false</CleanBuildOutputsOnPublish>
+  </PropertyGroup>
+
+  <Target Name="CleanBuildOutputsIfRequested" AfterTargets="Publish" Condition="'$(CleanBuildOutputsOnPublish)' == 'true'">
+    <Message Text="Cleaning build outputs under $(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)" Importance="high" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)" />
+      <!-- Remove legacy publish/output folders no longer used -->
+      <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\Releases" Condition="Exists('$(MSBuildProjectDirectory)\bin\Releases')" />
+      <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\Portable" Condition="Exists('$(MSBuildProjectDirectory)\bin\Portable')" />
+      <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\x64" Condition="Exists('$(MSBuildProjectDirectory)\bin\x64')" />
+  </Target>
+</Project>

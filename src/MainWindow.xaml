@@ -1,0 +1,46 @@
+<Window x:Class="ExtractNow.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ExtractNow" Height="420" Width="720" WindowStartupLocation="CenterScreen"
+    ResizeMode="NoResize"
+    AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+            <Button x:Name="BrowseButton" Content="Open Archive…" Width="120" Click="BrowseButton_Click" Margin="0,0,8,0"/>
+            <Button x:Name="SettingsButton" Content="Settings" Width="100" Click="SettingsButton_Click" Margin="0,0,8,0"/>
+            <TextBlock Text="Drag &amp; drop an archive here, or launch via file association." VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <ProgressBar x:Name="Progress" Grid.Row="1" Height="18" Margin="0,12,0,12" IsIndeterminate="True" Minimum="0" Maximum="100"/>
+
+        <!-- Drag-and-drop zone for archives -->
+        <Border Grid.Row="2" Height="120" BorderBrush="#88000000" BorderThickness="1" CornerRadius="6" Background="#08000000"
+                AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver" Margin="0,0,0,12">
+            <Grid>
+                <TextBlock x:Name="DropHintText" Text="Drop archive here" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+
+        <TextBox x:Name="LogBox" Grid.Row="3" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True"/>
+
+        <Grid Grid.Row="4" Margin="0,12,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock x:Name="StatusText" Grid.Column="0" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="CancelButton" Content="Cancel" Width="100" Click="CancelButton_Click" Margin="0,0,8,0" IsEnabled="False"/>
+                <Button x:Name="ExitButton" Content="Exit" Width="100" Click="ExitButton_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

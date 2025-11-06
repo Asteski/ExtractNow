@@ -1,0 +1,61 @@
+<Window x:Class="ExtractNow.Views.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Settings" Width="600" MinWidth="600" WindowStartupLocation="CenterOwner" SizeToContent="Height" ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        
+
+        <GroupBox Grid.Row="1" Header="Progress window" Padding="8" Margin="0,0,0,8">
+            <StackPanel>
+                <CheckBox x:Name="ShowOnAssocCheck"
+                          Content="Show progress window when launched by double-click"
+                          Margin="0,0,0,0"/>
+                <CheckBox x:Name="ShowTrayIconCheck"
+                          Content="Show tray icon while extracting (with progress)"
+                          Margin="0,6,0,0"/>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock Text="Show window if archive ≥" VerticalAlignment="Center"/>
+                    <TextBox x:Name="ThresholdMbBox" Width="80" Margin="8,0,8,0"/>
+                    <TextBlock Text="MB" VerticalAlignment="Center"/>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 7-Zip location selector -->
+        <GroupBox Grid.Row="2" Header="7-Zip location" Padding="8" Margin="0,0,0,8">
+            <StackPanel>
+                <TextBlock Text="Define a custom path to 7-Zip binaries, or restore the default (ExtractNow\7zip)." TextWrapping="Wrap"/>
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="SevenZipPathBox" Grid.Column="0" Width="240" MinWidth="0" IsReadOnly="True" HorizontalAlignment="Left"/>
+                    <Button Grid.Column="1" Content="Select…" Width="100" Margin="8,0,0,0" Click="SelectSevenZip_Click"/>
+                    <Button Grid.Column="2" Content="Restore default" Width="130" Margin="8,0,0,0" Click="RestoreSevenZip_Click"/>
+                </Grid>
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox Grid.Row="3" Header="Maintenance" Padding="8" Margin="0,0,0,8">
+            <StackPanel>
+                <TextBlock Text="Remove any registry entries created by ExtractNow for file associations (per-user)." TextWrapping="Wrap"/>
+                <Button x:Name="CleanupAssocButton" Content="Remove association registry entries" Width="260" Margin="0,8,0,0" Click="CleanupAssocButton_Click"/>
+            </StackPanel>
+        </GroupBox>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Save" Width="100" Click="Save_Click" IsDefault="True"/>
+            <Button Content="Close" Width="100" Click="Close_Click" Margin="8,0,0,0" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>
