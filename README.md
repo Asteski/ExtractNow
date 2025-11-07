@@ -38,7 +38,3 @@ The repo includes a `7zip/` directory that’s copied next to the executable at 
 ## Notes
 - Portable builds include the .NET runtime; no install required.
 - If an archive is corrupt or unsupported, 7-Zip returns non-zero; the app surfaces this in the log.
-- x64 and ARM64 builds are functionally equivalent.
-
-## License
-Released under the [GNU General Public License v3.0](LICENSE).
