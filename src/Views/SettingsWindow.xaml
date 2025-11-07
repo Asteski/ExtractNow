@@ -26,6 +26,14 @@
                     <TextBox x:Name="ThresholdMbBox" Width="80" Margin="8,0,8,0"/>
                     <TextBlock Text="MB" VerticalAlignment="Center"/>
                 </StackPanel>
+
+                <Separator Margin="0,10,0,10"/>
+                <CheckBox x:Name="OpenFolderOnCompleteCheck"
+                          Content="Open the extracted folder automatically"
+                          Margin="0,0,0,0"/>
+                <CheckBox x:Name="CloseAppAfterExtractionCheck"
+                          Content="Close ExtractNow after extraction"
+                          Margin="0,6,0,0"/>
             </StackPanel>
         </GroupBox>
 

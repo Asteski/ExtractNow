@@ -13,21 +13,37 @@ namespace ExtractNow.Views
         {
             InitializeComponent();
             _settings = settings;
-            ShowOnAssocCheck.IsChecked = _settings.ShowWindowOnAssociationLaunch;
-            ShowTrayIconCheck.IsChecked = _settings.ShowTrayIconDuringExtraction;
-            ThresholdMbBox.Text = _settings.ShowWindowThresholdMB > 0 ? _settings.ShowWindowThresholdMB.ToString() : string.Empty;
 
-            // Initialize 7-Zip path UI
+            // Defensive: if XAML names change, null checks avoid crashes.
+            if (FindName("ShowOnAssocCheck") is System.Windows.Controls.CheckBox showOnAssoc)
+                showOnAssoc.IsChecked = _settings.ShowWindowOnAssociationLaunch;
+            if (FindName("ShowTrayIconCheck") is System.Windows.Controls.CheckBox trayCheck)
+                trayCheck.IsChecked = _settings.ShowTrayIconDuringExtraction;
+            if (FindName("ThresholdMbBox") is System.Windows.Controls.TextBox thresholdBox)
+                thresholdBox.Text = _settings.ShowWindowThresholdMB > 0 ? _settings.ShowWindowThresholdMB.ToString() : string.Empty;
+            if (FindName("OpenFolderOnCompleteCheck") is System.Windows.Controls.CheckBox openFolderCheck)
+                openFolderCheck.IsChecked = _settings.OpenOutputFolderOnComplete;
+            if (FindName("CloseAppAfterExtractionCheck") is System.Windows.Controls.CheckBox closeAppCheck)
+                closeAppCheck.IsChecked = _settings.CloseAppAfterExtraction;
+            if (FindName("SevenZipPathBox") is System.Windows.Controls.TextBox sevenZipPathBox)
+                sevenZipPathBox.Text = GetDisplaySevenZipPath();
+
             _selectedSevenZipPath = string.IsNullOrWhiteSpace(_settings.SevenZipPath) ? null : _settings.SevenZipPath;
-            SevenZipPathBox.Text = GetDisplaySevenZipPath();
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             // Save window visibility preference only and close the settings window
-            _settings.ShowWindowOnAssociationLaunch = ShowOnAssocCheck.IsChecked == true;
-            _settings.ShowTrayIconDuringExtraction = ShowTrayIconCheck.IsChecked == true;
-            if (int.TryParse(ThresholdMbBox.Text.Trim(), out var mb) && mb > 0)
+            // Retrieve controls dynamically (robust to XAML regeneration issues)
+            var showOnAssoc = FindName("ShowOnAssocCheck") as System.Windows.Controls.CheckBox;
+            var trayCheck = FindName("ShowTrayIconCheck") as System.Windows.Controls.CheckBox;
+            var thresholdBox = FindName("ThresholdMbBox") as System.Windows.Controls.TextBox;
+            var openFolderCheck = FindName("OpenFolderOnCompleteCheck") as System.Windows.Controls.CheckBox;
+            var closeAppCheck = FindName("CloseAppAfterExtractionCheck") as System.Windows.Controls.CheckBox;
+
+            _settings.ShowWindowOnAssociationLaunch = showOnAssoc?.IsChecked == true;
+            _settings.ShowTrayIconDuringExtraction = trayCheck?.IsChecked == true;
+            if (int.TryParse(thresholdBox?.Text.Trim() ?? string.Empty, out var mb) && mb > 0)
             {
                 _settings.ShowWindowThresholdMB = mb;
             }
@@ -35,6 +51,8 @@ namespace ExtractNow.Views
             {
                 _settings.ShowWindowThresholdMB = 0;
             }
+            _settings.OpenOutputFolderOnComplete = openFolderCheck?.IsChecked == true;
+            _settings.CloseAppAfterExtraction = closeAppCheck?.IsChecked == true;
 
             // Validate selected 7-Zip path if custom, else accept default
             if (_selectedSevenZipPath != null && !IsValidSevenZipFolder(_selectedSevenZipPath))
@@ -113,7 +131,8 @@ namespace ExtractNow.Views
                         return;
                     }
                     _selectedSevenZipPath = dlg.SelectedPath;
-                    SevenZipPathBox.Text = GetDisplaySevenZipPath();
+                    if (FindName("SevenZipPathBox") is System.Windows.Controls.TextBox sevenZipPathBox)
+                        sevenZipPathBox.Text = GetDisplaySevenZipPath();
                 }
             }
             catch (Exception ex)
@@ -125,7 +144,8 @@ namespace ExtractNow.Views
         private void RestoreSevenZip_Click(object sender, RoutedEventArgs e)
         {
             _selectedSevenZipPath = null; // default
-            SevenZipPathBox.Text = GetDisplaySevenZipPath();
+            if (FindName("SevenZipPathBox") is System.Windows.Controls.TextBox sevenZipPathBox)
+                sevenZipPathBox.Text = GetDisplaySevenZipPath();
         }
 
         

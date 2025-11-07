@@ -6,11 +6,16 @@
   <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-    <Platforms>x64</Platforms>
+  <!-- Support both x64 and ARM64 publishes; individual publish commands will pick one RID -->
+  <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+  <Platforms>x64;ARM64</Platforms>
     <AssemblyName>ExtractNow</AssemblyName>
     <RootNamespace>ExtractNow</RootNamespace>
     <ApplicationIcon>assets\icon.ico</ApplicationIcon>
+    <!-- App semantic version; used for About dialog and dist archive names -->
+    <Version>1.1.0</Version>
+  <!-- Force publish output to reuse existing Release/win-* folder structure (avoid net8.0-windows duplication) -->
+  <PublishDir>bin\$(Configuration)\$(RuntimeIdentifier)\</PublishDir>
   </PropertyGroup>
 
   <!-- Bundle any files in the local 7zip folder with the app output -->
@@ -34,5 +39,65 @@
       <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\Releases" Condition="Exists('$(MSBuildProjectDirectory)\bin\Releases')" />
       <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\Portable" Condition="Exists('$(MSBuildProjectDirectory)\bin\Portable')" />
       <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\x64" Condition="Exists('$(MSBuildProjectDirectory)\bin\x64')" />
+      <!-- Remove auto-created nested publish folder if any (net8.0-windows/win-*) to prevent duplication -->
+      <RemoveDir Directories="$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish" Condition="Exists('$(MSBuildProjectDirectory)\bin\$(Configuration)\$(TargetFramework)\$(RuntimeIdentifier)\publish')" />
   </Target>
+
+  <!-- Package publish output into versioned zip under /dist after each publish -->
+  <PropertyGroup>
+    <DistDir>$(MSBuildProjectDirectory)\dist</DistDir>
+    <DistFile>$(DistDir)\ExtractNow-v$(Version)-$(RuntimeIdentifier).zip</DistFile>
+  </PropertyGroup>
+
+  <Target Name="PackageToDist" AfterTargets="Publish">
+    <Message Text="Preparing package for $(RuntimeIdentifier) → $(DistFile)" Importance="high" />
+    <MakeDir Directories="$(DistDir)" Condition="!Exists('$(DistDir)')" />
+    <!-- Remove any old non-versioned zips to keep dist clean -->
+    <ItemGroup>
+      <OldZips Include="$(DistDir)\ExtractNow-win-*.zip" />
+    </ItemGroup>
+    <Delete Files="@(OldZips)" />
+    <!-- Remove stray extracted folders that match version naming (if user manually extracted) -->
+    <ItemGroup>
+      <OldDirs Include="$(DistDir)\ExtractNow-v*-win-*" />
+    </ItemGroup>
+    <RemoveDir Directories="@(OldDirs)" />
+
+    <!-- Create a runtime-specific README.txt inside the publish directory (temporary, will be zipped) -->
+    <PropertyGroup>
+      <ReadmeFile>$(PublishDir)README.txt</ReadmeFile>
+  <!-- Escape UTC without XML entity issues -->
+  <Now>$([System.DateTime]::UtcNow.ToString('yyyy-MM-dd HH:mm:ss')) UTC</Now>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="true" Lines="ExtractNow $(Version) ($(RuntimeIdentifier))" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="Built: $(Now)" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="Usage: Run ExtractNow.exe and drag an archive into the window." />
+  <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="Settings &amp; extraction behaviors are stored next to the executable (settings.json)." />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="Keyboard Shortcuts:" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="  Ctrl+,   Open Settings" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="  Ctrl+O   Select Archive" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="  Ctrl+E   Open Extracted Folder" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="  Ctrl+C   Cancel Extraction" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="  Ctrl+W   Exit" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="" />
+    <WriteLinesToFile File="$(ReadmeFile)" Overwrite="false" Lines="License: See LICENSE file included." />
+
+    <!-- Ensure LICENSE is present in publish directory -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\LICENSE" DestinationFolder="$(PublishDir)" SkipUnchangedFiles="true" Condition="Exists('$(MSBuildProjectDirectory)\LICENSE')" />
+
+    <!-- Create zip (force overwrite) -->
+    <Message Text="Zipping $(PublishDir) -> $(DistFile)" Importance="high" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path '$(PublishDir)*' -DestinationPath '$(DistFile)' -Force&quot;" />
+
+    <!-- Append SHA256 checksum line -->
+    <PropertyGroup>
+      <DistChecksumsFile>$(DistDir)\sha256sums.txt</DistChecksumsFile>
+    </PropertyGroup>
+  <!-- Simpler checksum command to avoid XML escaping complexities -->
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;$p='$(DistFile)'; $s=[System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.IO.File]::OpenRead($p))).Replace('-',''); ($s + '  ' + (Split-Path -Leaf $p)) | Out-File -FilePath '$(DistChecksumsFile)' -Append -Encoding ascii&quot;" />
+  </Target>
+
+  
 </Project>

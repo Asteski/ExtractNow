@@ -1,12 +1,16 @@
 # ExtractNow
 
-A tiny WPF app to extract archives using bundled 7-Zip components for quick extraction from Explorer. Now ships portable self-contained builds for Windows x64 and ARM64.
+Tiny, portable WPF app that extracts archives using bundled 7-Zip. Ships self-contained builds for Windows x64 and ARM64.
 
 ## Features
-- Extract any supported archive to a subfolder with the same name next to the archive
-- Progress bar with live 7-Zip output and cancel
-- Drag & drop or launch via file association (passes archive path as first argument)
-- Settings to choose 7-Zip executable path
+- Extracts to a sibling folder named after the archive (e.g., `file.zip` → `file/`).
+- Progress with live log and Cancel.
+- Drag & drop, or open via file association (first CLI arg is the archive path).
+- Settings: choose bundled/system 7-Zip, tray behavior, and display preferences.
+- Optional: automatically open the extracted folder on completion.
+- Optional: close the app after a successful extraction.
+- “Open extracted folder…” button enabled after success.
+- Keyboard shortcuts and a simple About dialog (shows version and owner).
 
 ## Requirements
 Runtime (end users):
@@ -15,16 +19,22 @@ Runtime (end users):
 
 For building from source:
 - .NET 8 SDK
-- (Optional) External system 7-Zip if you don't rely on the bundled copy
 
 ## Usage
-- Run the app normally to open the UI, drag & drop an archive, or click Open Archive…
-- Or, in Settings, register "Open with" for `.zip`, `.7z`, `.rar`. Then right-click an archive in Explorer and choose ExtractNow.
+- Run the app and drag & drop an archive or click Extract.
+- To integrate with Explorer, use Settings to register per-user "Open with" for `.zip`, `.7z`, `.rar` (no default handler changes).
 
-### Bundled 7-Zip
-The repository includes a `7zip/` directory that is copied beside the executable on publish. The app will auto-detect `7z.exe` there. You may still point Settings to a separate 7-Zip installation if preferred.
+## Bundled 7-Zip
+The repo includes a `7zip/` directory that’s copied next to the executable at publish time. The app auto-detects `7z.exe` there. You can instead set a system 7-Zip path in Settings. When redistributing, keep the 7-Zip license/readme files intact.
+
+## Keyboard shortcuts
+- Ctrl + ,  → Settings
+- Ctrl + O  → Select archive
+- Ctrl + E  → Open extracted folder
+- Ctrl + C  → Cancel extraction
+- Ctrl + W  → Exit
+- Esc       → Close About window
 
 ## Notes
 - Portable builds include the .NET runtime; no install required.
 - If an archive is corrupt or unsupported, 7-Zip returns non-zero; the app surfaces this in the log.
-- Architecture-specific builds (win-x64 / win-arm64) are functionally equivalent.
