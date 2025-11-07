@@ -30,7 +30,7 @@ For building from source:
 - Ctrl + E  → Open extracted folder
 - Ctrl + C  → Cancel extraction
 - Ctrl + W  → Exit
-- Esc       → Close About window
+- Esc       → Close About or Settings window
 
 ## Bundled 7-Zip
 The repo includes a `7zip/` directory that’s copied next to the executable at publish time. The app auto-detects `7z.exe` there. You can instead set a system 7-Zip path in Settings. When redistributing, keep the 7-Zip license/readme files intact.
