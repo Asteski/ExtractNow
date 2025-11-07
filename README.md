@@ -10,7 +10,7 @@ Tiny, portable WPF app that extracts archives using bundled 7-Zip. Ships self-co
 - Optional: automatically open the extracted folder on completion.
 - Optional: close the app after a successful extraction.
 - “Open extracted folder…” button enabled after success.
-- Keyboard shortcuts and a simple About dialog (shows version and owner).
+- Keyboard shortcuts and a simple About dialog.
 
 ## Requirements
 Runtime (end users):
