@@ -15,6 +15,8 @@ namespace ExtractNow.Services
             public int ShowWindowThresholdMB { get; set; } = 0; // 0 means disabled
             public bool ShowTrayIconDuringExtraction { get; set; } = false; // default: don't show tray icon unless enabled
             public string? SevenZipPath { get; set; } = null; // null/empty -> use app default folder
+            public bool OpenOutputFolderOnComplete { get; set; } = false; // default: off
+            public bool CloseAppAfterExtraction { get; set; } = false; // default: off
         }
 
     private Settings _settings;
@@ -49,6 +51,18 @@ namespace ExtractNow.Services
         {
             get => _settings.SevenZipPath;
             set { _settings.SevenZipPath = string.IsNullOrWhiteSpace(value) ? null : value; Save(); }
+        }
+
+        public bool OpenOutputFolderOnComplete
+        {
+            get => _settings.OpenOutputFolderOnComplete;
+            set { _settings.OpenOutputFolderOnComplete = value; Save(); }
+        }
+
+        public bool CloseAppAfterExtraction
+        {
+            get => _settings.CloseAppAfterExtraction;
+            set { _settings.CloseAppAfterExtraction = value; Save(); }
         }
 
         private Settings Load()

@@ -1,6 +1,7 @@
 using ExtractNow.Services;
 using Microsoft.Win32;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,7 @@ using System.Windows.Interop;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
+using System.Windows.Input;
 
 namespace ExtractNow
 {
@@ -20,6 +22,17 @@ namespace ExtractNow
         private CancellationTokenSource? _cts;
     private System.Windows.Forms.NotifyIcon? _tray;
     private int _lastPercent;
+    private bool _openedOutputFolderThisRun;
+    private bool _extractionCompleted;
+    private static string? _lastOpenedOutputFolder;
+    private string? _currentOutputDir;
+
+        // Routed commands for keyboard shortcuts
+        public static readonly RoutedUICommand SettingsCommand = new("Settings", nameof(SettingsCommand), typeof(MainWindow));
+        public static readonly RoutedUICommand ExtractCommand = new("Extract", nameof(ExtractCommand), typeof(MainWindow));
+        public static readonly RoutedUICommand OpenFolderCommand = new("OpenFolder", nameof(OpenFolderCommand), typeof(MainWindow));
+        public static readonly RoutedUICommand CancelCommand = new("Cancel", nameof(CancelCommand), typeof(MainWindow));
+        public static readonly RoutedUICommand ExitCommand = new("Exit", nameof(ExitCommand), typeof(MainWindow));
 
         public MainWindow()
         {
@@ -32,6 +45,60 @@ namespace ExtractNow
             try { SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged; } catch { }
             // Initialize theme-dependent colors immediately
             try { UpdateDropHintTheme(); } catch { }
+
+            // Command bindings
+            CommandBindings.Add(new CommandBinding(SettingsCommand, (s, e) => SettingsButton_Click(s, e))); // no special CanExecute
+            CommandBindings.Add(new CommandBinding(ExtractCommand, (s, e) => BrowseButton_Click(s, e), (s, e) => e.CanExecute = _cts == null));
+            CommandBindings.Add(new CommandBinding(OpenFolderCommand, (s, e) => OpenOutputButton_Click(s, e), (s, e) => e.CanExecute = OpenOutputButton != null && OpenOutputButton.IsEnabled));
+            CommandBindings.Add(new CommandBinding(CancelCommand, (s, e) => CancelButton_Click(s, e), (s, e) => e.CanExecute = _cts != null));
+            CommandBindings.Add(new CommandBinding(ExitCommand, (s, e) => ExitButton_Click(s, e))); // always executable
+
+            // Fallback hotkey handling: ensure shortcuts work even when a child (e.g., TextBox) eats the gesture
+            PreviewKeyDown += MainWindow_PreviewKeyDown;
+        }
+
+    private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            try
+            {
+                if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+                {
+                    switch (e.Key)
+                    {
+                        case Key.OemComma: // Ctrl + , → Settings
+                            SettingsButton_Click(this, new RoutedEventArgs());
+                            e.Handled = true;
+                            break;
+                        case Key.O: // Ctrl + O → Extract
+                            if (_cts == null)
+                            {
+                                BrowseButton_Click(this, new RoutedEventArgs());
+                                e.Handled = true;
+                            }
+                            break;
+                        case Key.E: // Ctrl + E → Open extracted folder
+                            // Use FindName to avoid generated name resolution issues during static analysis
+                            if (FindName("OpenOutputButton") is System.Windows.Controls.Button b && b.IsEnabled)
+                            {
+                                OpenOutputButton_Click(this, new RoutedEventArgs());
+                                e.Handled = true;
+                            }
+                            break;
+                        case Key.C: // Ctrl + C → Cancel
+                            if (_cts != null)
+                            {
+                                CancelButton_Click(this, new RoutedEventArgs());
+                                e.Handled = true;
+                            }
+                            break;
+                        case Key.W: // Ctrl + W → Exit
+                            ExitButton_Click(this, new RoutedEventArgs());
+                            e.Handled = true;
+                            break;
+                    }
+                }
+            }
+            catch { }
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -92,6 +159,8 @@ namespace ExtractNow
 
         public async Task StartExtraction(string archivePath)
         {
+            _openedOutputFolderThisRun = false;
+            _extractionCompleted = false;
             LogBox.Clear();
             StatusText.Text = "Starting…";
             Progress.IsIndeterminate = true;
@@ -119,9 +188,12 @@ namespace ExtractNow
             });
             var log = new Progress<string>(line => AppendLog(line));
 
+            string? outDir = null;
+            OpenOutputButton.IsEnabled = false; // reset per run
             try
             {
-                var outDir = Path.Combine(Path.GetDirectoryName(archivePath)!, Path.GetFileNameWithoutExtension(archivePath));
+                outDir = Path.Combine(Path.GetDirectoryName(archivePath)!, Path.GetFileNameWithoutExtension(archivePath));
+                _currentOutputDir = outDir;
                 Directory.CreateDirectory(outDir);
                 AppendLog($"Output folder: {outDir}");
                 EnsureTrayIcon();
@@ -133,6 +205,18 @@ namespace ExtractNow
                     Progress.Value = 100;
                     StatusText.Text = "Done";
                     AppendLog("Extraction completed successfully.");
+                    _extractionCompleted = true;
+                    OpenOutputButton.IsEnabled = true; // enable manual open
+                    OpenOutputFolderIfEnabled(outDir);
+
+                    if (_settings.CloseAppAfterExtraction)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try { await Task.Delay(200); } catch { }
+                            try { Dispatcher.Invoke(() => Close()); } catch { }
+                        });
+                    }
                 }
                 else
                 {
@@ -163,6 +247,64 @@ namespace ExtractNow
         {
             LogBox.AppendText(text + Environment.NewLine);
             LogBox.ScrollToEnd();
+        }
+
+        private void OpenOutputFolderIfEnabled(string? outDir)
+        {
+            try
+            {
+                if (!_settings.OpenOutputFolderOnComplete) return;
+                if (!_extractionCompleted) return;
+                if (_openedOutputFolderThisRun) return;
+                if (string.IsNullOrWhiteSpace(outDir) || !Directory.Exists(outDir)) return;
+                if (string.Equals(_lastOpenedOutputFolder, outDir, StringComparison.OrdinalIgnoreCase)) return;
+
+                _openedOutputFolderThisRun = true;
+                _lastOpenedOutputFolder = outDir;
+                AppendLog($"Opening output folder: {outDir}");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"\"{outDir}\"",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Failed to open output folder: " + ex.Message);
+            }
+        }
+
+        private void OpenOutputButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (!string.IsNullOrWhiteSpace(_currentOutputDir) && Directory.Exists(_currentOutputDir))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "explorer.exe",
+                        Arguments = $"\"{_currentOutputDir}\"",
+                        UseShellExecute = true
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Failed to open folder: " + ex.Message);
+            }
+        }
+
+        private void AboutButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var wnd = new Views.AboutWindow();
+                wnd.Owner = this;
+                wnd.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                wnd.ShowDialog();
+            }
+            catch { }
         }
 
         private async void BrowseButton_Click(object sender, RoutedEventArgs e)

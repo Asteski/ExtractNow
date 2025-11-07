@@ -1,0 +1,57 @@
+<Window x:Class="ExtractNow.Views.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="About" Width="420" WindowStartupLocation="CenterOwner" SizeToContent="Height" ResizeMode="NoResize" KeyDown="AboutWindow_KeyDown">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Vertical" Margin="0,0,0,10" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock x:Name="AppTitle" FontSize="16" FontWeight="SemiBold" TextAlignment="Center"/>
+            <TextBlock x:Name="AppVersion" TextAlignment="Center"/>
+            <TextBlock x:Name="AppOwner" TextAlignment="Center"/>
+        </StackPanel>
+
+        <GroupBox Grid.Row="1" Header="Keyboard shortcuts" Padding="8" Margin="0,0,0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Ctrl + ," FontWeight="Bold" Margin="0,0,8,0"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="Settings"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Ctrl + O" FontWeight="Bold" Margin="0,6,8,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="Extract" Margin="0,6,0,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Ctrl + E" FontWeight="Bold" Margin="0,6,8,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="Open extracted folder" Margin="0,6,0,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Ctrl + C" FontWeight="Bold" Margin="0,6,8,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="Cancel" Margin="0,6,0,0"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Ctrl + W" FontWeight="Bold" Margin="0,6,8,0"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="Exit" Margin="0,6,0,0"/>
+            </Grid>
+        </GroupBox>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center">
+                <Hyperlink NavigateUri="https://github.com/Asteski/ExtractNow" RequestNavigate="Hyperlink_RequestNavigate">GitHub page</Hyperlink>
+            </TextBlock>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Close" IsDefault="True" Width="100" Click="Close_Click"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
