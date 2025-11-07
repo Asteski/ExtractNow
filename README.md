@@ -26,10 +26,10 @@ For building from source:
 
 ## Keyboard shortcuts
 - Ctrl + ,  → Settings
-- Ctrl + o  → Select archive
-- Ctrl + e  → Open extracted folder
-- Ctrl + c  → Cancel extraction
-- Ctrl + w  → Exit
+- Ctrl + O  → Select archive
+- Ctrl + E  → Open extracted folder
+- Ctrl + C  → Cancel extraction
+- Ctrl + W  → Exit
 - Esc       → Close About window
 
 ## Bundled 7-Zip
