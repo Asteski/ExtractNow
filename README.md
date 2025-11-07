@@ -24,16 +24,16 @@ For building from source:
 - Run the app and drag & drop an archive or click Extract.
 - To integrate with Explorer, use Settings to register per-user "Open with" for `.zip`, `.7z`, `.rar` (no default handler changes).
 
-## Bundled 7-Zip
-The repo includes a `7zip/` directory that’s copied next to the executable at publish time. The app auto-detects `7z.exe` there. You can instead set a system 7-Zip path in Settings. When redistributing, keep the 7-Zip license/readme files intact.
-
 ## Keyboard shortcuts
 - Ctrl + ,  → Settings
-- Ctrl + O  → Select archive
-- Ctrl + E  → Open extracted folder
-- Ctrl + C  → Cancel extraction
-- Ctrl + W  → Exit
+- Ctrl + o  → Select archive
+- Ctrl + e  → Open extracted folder
+- Ctrl + c  → Cancel extraction
+- Ctrl + w  → Exit
 - Esc       → Close About window
+
+## Bundled 7-Zip
+The repo includes a `7zip/` directory that’s copied next to the executable at publish time. The app auto-detects `7z.exe` there. You can instead set a system 7-Zip path in Settings. When redistributing, keep the 7-Zip license/readme files intact.
 
 ## Notes
 - Portable builds include the .NET runtime; no install required.
