@@ -1,6 +1,6 @@
 # ExtractNow
 
-Tiny, portable WPF app that extracts archives using bundled 7-Zip. Ships self-contained builds for Windows x64 and ARM64.
+ExtractNow is a portable WPF application that extracts archives instantly without displaying additional windows. It comes bundled with 7-Zip and provides self-contained builds for Windows x64 and ARM64.
 
 ## Features
 - Extracts to a sibling folder named after the archive (e.g., `file.zip` → `file/`).
@@ -25,12 +25,12 @@ For building from source:
 - To integrate with Explorer, use Settings to register per-user "Open with" for `.zip`, `.7z`, `.rar` (no default handler changes).
 
 ## Keyboard shortcuts
-- Ctrl + ,  → Settings
-- Ctrl + O  → Select archive
-- Ctrl + E  → Open extracted folder
-- Ctrl + C  → Cancel extraction
-- Ctrl + W  → Exit
-- Esc       → Close About or Settings window
+- ctrl + ,  → Settings
+- ctrl + o  → Select archive
+- ctrl + e  → Open extracted folder
+- ctrl + c  → Cancel extraction
+- ctrl + w  → Exit
+- esc       → Close About or Settings window
 
 ## Bundled 7-Zip
 The repo includes a `7zip/` directory that’s copied next to the executable at publish time. The app auto-detects `7z.exe` there. You can instead set a system 7-Zip path in Settings. When redistributing, keep the 7-Zip license/readme files intact.
