@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ExtractNow.Services
 {
@@ -11,12 +12,23 @@ namespace ExtractNow.Services
 
         public class Settings
         {
-                public bool ShowWindowOnAssociationLaunch { get; set; } = false; // default: don't show window
+            public bool ShowWindowOnAssociationLaunch { get; set; } = false; // default: don't show window
             public int ShowWindowThresholdMB { get; set; } = 0; // 0 means disabled
             public bool ShowTrayIconDuringExtraction { get; set; } = false; // default: don't show tray icon unless enabled
             public string? SevenZipPath { get; set; } = null; // null/empty -> use app default folder
             public bool OpenOutputFolderOnComplete { get; set; } = false; // default: off
             public bool CloseAppAfterExtraction { get; set; } = false; // default: off
+            // Window persistence (0 means unset / use defaults)
+            // These properties are ALWAYS hidden from JSON but can still be read if manually added
+            [JsonIgnore]
+            public int WindowWidth { get; set; } = 0;
+            [JsonIgnore]
+            public int WindowHeight { get; set; } = 0;
+            [JsonIgnore]
+            public bool WindowMaximized { get; set; } = false;
+            // When true, ignore persisted geometry and restore default window size on next launch
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+            public bool RestoreDefaultWindowSizeOnRestart { get; set; } = false;
         }
 
     private Settings _settings;
@@ -65,6 +77,30 @@ namespace ExtractNow.Services
             set { _settings.CloseAppAfterExtraction = value; Save(); }
         }
 
+        public int WindowWidth
+        {
+            get => _settings.WindowWidth;
+            set { _settings.WindowWidth = Math.Max(400, value); Save(); }
+        }
+
+        public int WindowHeight
+        {
+            get => _settings.WindowHeight;
+            set { _settings.WindowHeight = Math.Max(300, value); Save(); }
+        }
+
+        public bool WindowMaximized
+        {
+            get => _settings.WindowMaximized;
+            set { _settings.WindowMaximized = value; Save(); }
+        }
+
+        public bool RestoreDefaultWindowSizeOnRestart
+        {
+            get => _settings.RestoreDefaultWindowSizeOnRestart;
+            set { _settings.RestoreDefaultWindowSizeOnRestart = value; Save(); }
+        }
+
         private Settings Load()
         {
             try
@@ -88,6 +124,18 @@ namespace ExtractNow.Services
                 var json = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
                 // Always write next to the executable (fully portable). Swallow IO errors silently.
                 File.WriteAllText(_portablePath, json);
+            }
+            catch { }
+        }
+
+        public void ResetWindowGeometry()
+        {
+            try
+            {
+                _settings.WindowWidth = 0;
+                _settings.WindowHeight = 0;
+                _settings.WindowMaximized = false;
+                Save();
             }
             catch { }
         }

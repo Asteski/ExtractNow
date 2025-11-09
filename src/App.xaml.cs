@@ -15,6 +15,8 @@ namespace ExtractNow
             // Removed proactive association metadata registration to avoid app appearing in Open With after cleanup.
 
             bool hasFileArg = e.Args.Length > 0 && File.Exists(e.Args[0]);
+            // hideOnAssoc should be TRUE only if: (1) we have a file AND (2) user wants to hide on association launch
+            // In other words: hideOnAssoc = false when ShowWindowOnAssociationLaunch = true
             bool hideOnAssoc = hasFileArg && !settings.ShowWindowOnAssociationLaunch;
 
             // If a size threshold is set and the archive exceeds it, force-show the window
@@ -35,6 +37,7 @@ namespace ExtractNow
             var main = new MainWindow();
             MainWindow = main;
 
+            // Only show the window if user wants to see it, or if no file is being extracted
             if (!hideOnAssoc)
             {
                 main.Show();
@@ -45,15 +48,16 @@ namespace ExtractNow
                 var task = main.StartExtraction(e.Args[0]);
                 if (hideOnAssoc)
                 {
+                    // In silent mode: don't show window, just close after extraction
                     task.ContinueWith(_ => Dispatcher.Invoke(() =>
                     {
                         try { main.Close(); } catch { }
                     }));
                 }
             }
-            else if (hideOnAssoc)
+            else
             {
-                // No file arg; nothing to do, show the window anyway
+                // No file argument: always show the window
                 main.Show();
             }
         }

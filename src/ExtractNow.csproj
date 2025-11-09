@@ -11,9 +11,9 @@
   <Platforms>x64;ARM64</Platforms>
     <AssemblyName>ExtractNow</AssemblyName>
     <RootNamespace>ExtractNow</RootNamespace>
-    <ApplicationIcon>assets\icon.ico</ApplicationIcon>
+    <ApplicationIcon>assets\app.ico</ApplicationIcon>
     <!-- App semantic version; used for About dialog and dist archive names -->
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
   <!-- Force publish output to reuse existing Release/win-* folder structure (avoid net8.0-windows duplication) -->
   <PublishDir>bin\$(Configuration)\$(RuntimeIdentifier)\</PublishDir>
   </PropertyGroup>
@@ -24,7 +24,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-    <None Include="assets\icon.ico" />
+    <None Include="assets\app.ico" />
+    <Resource Include="assets\settings.ico" />
+    <Resource Include="assets\about.ico" />
   </ItemGroup>
 
   <!-- Optionally clean default build outputs after publish to keep only Releases -->
