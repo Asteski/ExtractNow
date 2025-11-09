@@ -55,6 +55,8 @@ namespace ExtractNow
 
             // Fallback hotkey handling: ensure shortcuts work even when a child (e.g., TextBox) eats the gesture
             PreviewKeyDown += MainWindow_PreviewKeyDown;
+            Loaded += RestoreWindowSize;
+            Closing += SaveWindowSize;
         }
 
     private void MainWindow_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
@@ -110,6 +112,8 @@ namespace ExtractNow
                 var candidate = args[1];
                 if (File.Exists(candidate))
                 {
+                    // Guard against concurrent extraction (in case Loaded fires multiple times or another trigger is active)
+                    if (_cts != null) return;
                     await StartExtraction(candidate);
                 }
             }
@@ -118,6 +122,56 @@ namespace ExtractNow
         private void MainWindow_Closed(object? sender, EventArgs e)
         {
             try { SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged; } catch { }
+        }
+
+        private void RestoreWindowSize(object? sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_settings.RestoreDefaultWindowSizeOnRestart)
+                {
+                    WindowState = WindowState.Normal;
+                    Width = 720;
+                    Height = 580;
+                    try
+                    {
+                        // Center on current work area (respects taskbar and DPI)
+                        var wa = SystemParameters.WorkArea;
+                        Left = wa.Left + (wa.Width - Width) / 2;
+                        Top = wa.Top + (wa.Height - Height) / 2;
+                    }
+                    catch { }
+                }
+                else if (_settings.WindowWidth > 0 && _settings.WindowHeight > 0)
+                {
+                    Width = _settings.WindowWidth;
+                    Height = _settings.WindowHeight;
+                }
+                if (!_settings.RestoreDefaultWindowSizeOnRestart && _settings.WindowMaximized)
+                {
+                    WindowState = WindowState.Maximized;
+                }
+            }
+            catch { }
+        }
+
+        private void SaveWindowSize(object? sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                // Only save window geometry if user has disabled "Restore default on restart"
+                // This prevents polluting settings.json with window size when user wants defaults
+                if (!_settings.RestoreDefaultWindowSizeOnRestart)
+                {
+                    _settings.WindowMaximized = WindowState == WindowState.Maximized;
+                    if (WindowState == WindowState.Normal)
+                    {
+                        _settings.WindowWidth = (int)Math.Round(Width);
+                        _settings.WindowHeight = (int)Math.Round(Height);
+                    }
+                }
+            }
+            catch { }
         }
 
         private void SystemEvents_UserPreferenceChanged(object? sender, UserPreferenceChangedEventArgs e)
@@ -159,6 +213,13 @@ namespace ExtractNow
 
         public async Task StartExtraction(string archivePath)
         {
+            // Guard: If an extraction is already in progress, abort immediately to prevent double extraction
+            if (_cts != null)
+            {
+                AppendLog($"Extraction already in progress. Ignoring request for: {archivePath}");
+                return;
+            }
+
             _openedOutputFolderThisRun = false;
             _extractionCompleted = false;
             LogBox.Clear();
@@ -329,7 +390,22 @@ namespace ExtractNow
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            _cts?.Cancel();
+            // Show confirmation dialog before canceling extraction
+            if (_cts != null)
+            {
+                var result = System.Windows.MessageBox.Show(
+                    this,
+                    "Do you want to cancel the extraction in progress?",
+                    "Cancel Extraction",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Question,
+                    MessageBoxResult.No);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    _cts.Cancel();
+                }
+            }
         }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)

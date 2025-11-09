@@ -1,7 +1,8 @@
 <Window x:Class="ExtractNow.Views.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="About" Width="420" WindowStartupLocation="CenterOwner" SizeToContent="Height" ResizeMode="NoResize" KeyDown="AboutWindow_KeyDown">
+    Title="About" Width="420" WindowStartupLocation="CenterOwner" SizeToContent="Height" ResizeMode="NoResize" KeyDown="AboutWindow_KeyDown"
+    Icon="/assets/about.ico">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

@@ -14,6 +14,9 @@ namespace ExtractNow.Views
             InitializeComponent();
             _settings = settings;
 
+            // Initialize selected path from persisted settings BEFORE populating the textbox
+            _selectedSevenZipPath = string.IsNullOrWhiteSpace(_settings.SevenZipPath) ? null : _settings.SevenZipPath;
+
             // Defensive: if XAML names change, null checks avoid crashes.
             if (FindName("ShowOnAssocCheck") is System.Windows.Controls.CheckBox showOnAssoc)
                 showOnAssoc.IsChecked = _settings.ShowWindowOnAssociationLaunch;
@@ -27,8 +30,8 @@ namespace ExtractNow.Views
                 closeAppCheck.IsChecked = _settings.CloseAppAfterExtraction;
             if (FindName("SevenZipPathBox") is System.Windows.Controls.TextBox sevenZipPathBox)
                 sevenZipPathBox.Text = GetDisplaySevenZipPath();
-
-            _selectedSevenZipPath = string.IsNullOrWhiteSpace(_settings.SevenZipPath) ? null : _settings.SevenZipPath;
+            if (FindName("RestoreDefaultWindowSizeCheck") is System.Windows.Controls.CheckBox restoreDefaultCheck)
+                restoreDefaultCheck.IsChecked = _settings.RestoreDefaultWindowSizeOnRestart;
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -40,6 +43,8 @@ namespace ExtractNow.Views
             var thresholdBox = FindName("ThresholdMbBox") as System.Windows.Controls.TextBox;
             var openFolderCheck = FindName("OpenFolderOnCompleteCheck") as System.Windows.Controls.CheckBox;
             var closeAppCheck = FindName("CloseAppAfterExtractionCheck") as System.Windows.Controls.CheckBox;
+            var restoreDefaultCheck = FindName("RestoreDefaultWindowSizeCheck") as System.Windows.Controls.CheckBox;
+            var sevenZipPathBox = FindName("SevenZipPathBox") as System.Windows.Controls.TextBox;
 
             _settings.ShowWindowOnAssociationLaunch = showOnAssoc?.IsChecked == true;
             _settings.ShowTrayIconDuringExtraction = trayCheck?.IsChecked == true;
@@ -53,8 +58,32 @@ namespace ExtractNow.Views
             }
             _settings.OpenOutputFolderOnComplete = openFolderCheck?.IsChecked == true;
             _settings.CloseAppAfterExtraction = closeAppCheck?.IsChecked == true;
+            _settings.RestoreDefaultWindowSizeOnRestart = restoreDefaultCheck?.IsChecked == true;
 
-            // Validate selected 7-Zip path if custom, else accept default
+            // Determine 7-Zip path from typed value (or default)
+            var typed = sevenZipPathBox?.Text?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(typed))
+            {
+                _selectedSevenZipPath = null; // use default bundled path
+            }
+            else
+            {
+                // Normalize: remove surrounding quotes and expand env vars
+                var candidate = typed.Trim('"');
+                candidate = Environment.ExpandEnvironmentVariables(candidate);
+                // Validate directory existence and required files
+                if (!System.IO.Directory.Exists(candidate) || !IsValidSevenZipFolder(candidate))
+                {
+                    System.Windows.MessageBox.Show(this,
+                        "The specified 7-Zip folder is invalid. It must contain 7z.exe (or 7zG.exe) and 7z.dll.",
+                        "Invalid 7-Zip path",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return; // keep the window open
+                }
+                _selectedSevenZipPath = candidate;
+            }
+
+            // Validate selected 7-Zip path if custom, else accept default (extra safety)
             if (_selectedSevenZipPath != null && !IsValidSevenZipFolder(_selectedSevenZipPath))
             {
                 System.Windows.MessageBox.Show(this,
@@ -65,6 +94,11 @@ namespace ExtractNow.Views
             }
 
             _settings.SevenZipPath = _selectedSevenZipPath; // null => default
+            // Reflect final, effective value immediately in the textbox
+            if (sevenZipPathBox != null)
+            {
+                sevenZipPathBox.Text = GetDisplaySevenZipPath();
+            }
             Close();
         }
 
@@ -116,7 +150,7 @@ namespace ExtractNow.Views
             {
                 using var dlg = new System.Windows.Forms.FolderBrowserDialog
                 {
-                    Description = "Select the folder that contains 7z.exe and 7z.dll",
+                    Description = "Select 7-Zip folder",
                     ShowNewFolderButton = false
                 };
                 var result = dlg.ShowDialog();
@@ -148,6 +182,6 @@ namespace ExtractNow.Views
                 sevenZipPathBox.Text = GetDisplaySevenZipPath();
         }
 
-        
+        // (reset handler removed; toggle now controls behavior on restart)
     }
 }

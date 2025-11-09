@@ -2,8 +2,9 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:ExtractNow"
-        Title="ExtractNow" Height="420" Width="720" WindowStartupLocation="CenterScreen"
-    ResizeMode="NoResize"
+    Title="ExtractNow" Height="580" Width="720" WindowStartupLocation="CenterScreen"
+    ResizeMode="CanResize"
+    MinWidth="560" MinHeight="360"
     AllowDrop="True" Drop="Window_Drop" DragOver="Window_DragOver">
     <Window.InputBindings>
         <!-- Ctrl + ,  (comma) opens Settings -->

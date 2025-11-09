@@ -5,14 +5,19 @@ ExtractNow is a portable WPF application that extracts archives instantly withou
 ![ExtractNow](https://raw.githubusercontent.com/Asteski/ExtractNow/refs/heads/main/img/img01.png)
 
 ## Features
-- Extracts to a sibling folder named after the archive (e.g., `file.zip` → `file/`).
-- Progress with live log and Cancel.
-- Drag & drop, or open via file association (first CLI arg is the archive path).
-- Settings: choose bundled/system 7-Zip, tray behavior, and display preferences.
-- Optional: automatically open the extracted folder on completion.
-- Optional: close the app after a successful extraction.
-- “Open extracted folder…” button enabled after success.
-- Keyboard shortcuts and a simple About dialog.
+- **Extracts to a sibling folder** named after the archive (e.g., `file.zip` → `file/`).
+- **Resizable main window** with automatic size persistence (optional restore-to-default on restart).
+- **Progress with live log** and confirmation prompt before cancel.
+- **Drag & drop** or open via file association (first CLI arg is the archive path).
+- **Settings window**:
+  - Choose bundled or custom 7-Zip path (supports typing/pasting paths).
+  - Configure tray icon with live progress indicator during extraction.
+  - Control window visibility on association launch and file size threshold.
+  - Optionally open extracted folder automatically on completion.
+  - Optionally close the app after successful extraction.
+  - Restore original window size on restart.
+- **"Open extracted folder…"** button enabled after success.
+- **Keyboard shortcuts** for quick access (Settings, Extract, Open Folder, Cancel, Exit).
 
 ## Requirements
 Runtime (end users):
