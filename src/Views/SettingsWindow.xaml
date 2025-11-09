@@ -32,6 +32,10 @@
                 <CheckBox x:Name="OpenFolderOnCompleteCheck"
                           Content="Open the extracted folder automatically"
                           Margin="0,0,0,0"/>
+                <CheckBox x:Name="ReuseExplorerWindowsCheck"
+                          Content="Open extracted folder in the same Explorer window"
+                          ToolTip="When enabled, folders open in the current Explorer window instead of a new one"
+                          Margin="0,6,0,0"/>
                 <CheckBox x:Name="CloseAppAfterExtractionCheck"
                           Content="Close ExtractNow after extraction"
                           Margin="0,6,0,0"/>

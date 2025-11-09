@@ -12,6 +12,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Input;
+using System.Reflection;
 
 namespace ExtractNow
 {
@@ -26,6 +27,7 @@ namespace ExtractNow
     private bool _extractionCompleted;
     private static string? _lastOpenedOutputFolder;
     private string? _currentOutputDir;
+    private string? _currentArchiveDir; // directory containing the archive being extracted (for Explorer reuse)
 
         // Routed commands for keyboard shortcuts
         public static readonly RoutedUICommand SettingsCommand = new("Settings", nameof(SettingsCommand), typeof(MainWindow));
@@ -228,6 +230,7 @@ namespace ExtractNow
             Progress.Value = 0;
             CancelButton.IsEnabled = true;
             _lastPercent = 0;
+            _currentArchiveDir = Path.GetDirectoryName(archivePath); // remember source folder for Explorer reuse attempts
 
             if (!File.Exists(archivePath))
             {
@@ -323,17 +326,98 @@ namespace ExtractNow
                 _openedOutputFolderThisRun = true;
                 _lastOpenedOutputFolder = outDir;
                 AppendLog($"Opening output folder: {outDir}");
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "explorer.exe",
-                    Arguments = $"\"{outDir}\"",
-                    UseShellExecute = true
-                });
+                OpenFolderInExplorer(outDir);
             }
             catch (Exception ex)
             {
                 AppendLog("Failed to open output folder: " + ex.Message);
             }
+        }
+
+        private void OpenFolderInExplorer(string folderPath)
+        {
+            if (_settings.ReuseExplorerWindows && TryReuseExplorerWindow(folderPath))
+                return;
+
+            // Fallback: launch Explorer normally or force new window if reuse disabled
+            var args = _settings.ReuseExplorerWindows ? $"\"{folderPath}\"" : $"/n,\"{folderPath}\"";
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = args,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Explorer launch failed: " + ex.Message);
+            }
+        }
+
+        // Try to navigate an existing Explorer window that was showing the archive's parent folder.
+        // Returns true if navigation succeeded.
+        private bool TryReuseExplorerWindow(string targetFolder)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(targetFolder) || !Directory.Exists(targetFolder)) return false;
+                if (string.IsNullOrWhiteSpace(_currentArchiveDir)) return false;
+
+                // Instantiate ShellWindows COM collection
+                Type? shellWindowsType = Type.GetTypeFromProgID("Shell.Application");
+                if (shellWindowsType == null) return false;
+                dynamic? shellApp = Activator.CreateInstance(shellWindowsType);
+                if (shellApp == null) return false;
+
+                foreach (var win in shellApp.Windows())
+                {
+                    dynamic? dwin = win;
+                    if (dwin == null) continue;
+                    try
+                    {
+                        string? locUrl = dwin.LocationURL as string;
+                        if (string.IsNullOrEmpty(locUrl)) continue;
+                        if (!locUrl.StartsWith("file:///", StringComparison.OrdinalIgnoreCase)) continue;
+                        var path = Uri.UnescapeDataString(locUrl.Substring("file:///".Length)).Replace('/', '\\').TrimEnd('\\');
+                        var archiveDirNorm = _currentArchiveDir!.TrimEnd('\\');
+                        if (!string.Equals(path, archiveDirNorm, StringComparison.OrdinalIgnoreCase)) continue;
+
+                        // Prepare Navigate2 parameters (URL only; rest missing)
+                        object urlObj = targetFolder;
+                        object missing = Type.Missing;
+                        // Late-bind Navigate2
+                        dwin.GetType().InvokeMember("Navigate2", BindingFlags.InvokeMethod, null, dwin,
+                            new object[] { urlObj, missing, missing, missing, missing });
+                        return true;
+                    }
+                    catch { /* ignore and continue */ }
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        // Fallback: if we cannot reuse, we can attempt to open parent folder and select new folder
+        private bool TryOpenParentAndSelect(string targetFolder)
+        {
+            try
+            {
+                var parent = Path.GetDirectoryName(targetFolder);
+                if (string.IsNullOrWhiteSpace(parent)) return false;
+                if (!Directory.Exists(parent)) return false;
+                if (!Directory.Exists(targetFolder)) return false;
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{targetFolder}\"",
+                    UseShellExecute = true
+                });
+                return true;
+            }
+            catch { }
+            return false;
         }
 
         private void OpenOutputButton_Click(object sender, RoutedEventArgs e)
@@ -342,12 +426,7 @@ namespace ExtractNow
             {
                 if (!string.IsNullOrWhiteSpace(_currentOutputDir) && Directory.Exists(_currentOutputDir))
                 {
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = "explorer.exe",
-                        Arguments = $"\"{_currentOutputDir}\"",
-                        UseShellExecute = true
-                    });
+                    OpenFolderInExplorer(_currentOutputDir);
                 }
             }
             catch (Exception ex)

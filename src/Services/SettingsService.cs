@@ -18,6 +18,7 @@ namespace ExtractNow.Services
             public string? SevenZipPath { get; set; } = null; // null/empty -> use app default folder
             public bool OpenOutputFolderOnComplete { get; set; } = false; // default: off
             public bool CloseAppAfterExtraction { get; set; } = false; // default: off
+            public bool ReuseExplorerWindows { get; set; } = false; // default: off (open in new window)
             // Window persistence (0 means unset / use defaults)
             // These properties are ALWAYS hidden from JSON but can still be read if manually added
             [JsonIgnore]
@@ -75,6 +76,12 @@ namespace ExtractNow.Services
         {
             get => _settings.CloseAppAfterExtraction;
             set { _settings.CloseAppAfterExtraction = value; Save(); }
+        }
+
+        public bool ReuseExplorerWindows
+        {
+            get => _settings.ReuseExplorerWindows;
+            set { _settings.ReuseExplorerWindows = value; Save(); }
         }
 
         public int WindowWidth

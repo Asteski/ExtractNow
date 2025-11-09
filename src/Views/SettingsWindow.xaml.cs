@@ -25,13 +25,38 @@ namespace ExtractNow.Views
             if (FindName("ThresholdMbBox") is System.Windows.Controls.TextBox thresholdBox)
                 thresholdBox.Text = _settings.ShowWindowThresholdMB > 0 ? _settings.ShowWindowThresholdMB.ToString() : string.Empty;
             if (FindName("OpenFolderOnCompleteCheck") is System.Windows.Controls.CheckBox openFolderCheck)
+            {
                 openFolderCheck.IsChecked = _settings.OpenOutputFolderOnComplete;
+                openFolderCheck.Checked += OpenFolderOnCompleteCheck_Changed;
+                openFolderCheck.Unchecked += OpenFolderOnCompleteCheck_Changed;
+            }
+            if (FindName("ReuseExplorerWindowsCheck") is System.Windows.Controls.CheckBox reuseWindowCheck)
+                reuseWindowCheck.IsChecked = _settings.ReuseExplorerWindows;
             if (FindName("CloseAppAfterExtractionCheck") is System.Windows.Controls.CheckBox closeAppCheck)
                 closeAppCheck.IsChecked = _settings.CloseAppAfterExtraction;
             if (FindName("SevenZipPathBox") is System.Windows.Controls.TextBox sevenZipPathBox)
                 sevenZipPathBox.Text = GetDisplaySevenZipPath();
             if (FindName("RestoreDefaultWindowSizeCheck") is System.Windows.Controls.CheckBox restoreDefaultCheck)
                 restoreDefaultCheck.IsChecked = _settings.RestoreDefaultWindowSizeOnRestart;
+            
+            // Initialize the enabled state of ReuseExplorerWindows based on OpenFolderOnComplete
+            UpdateReuseExplorerWindowsState();
+        }
+
+        private void OpenFolderOnCompleteCheck_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateReuseExplorerWindowsState();
+        }
+
+        private void UpdateReuseExplorerWindowsState()
+        {
+            var openFolderCheck = FindName("OpenFolderOnCompleteCheck") as System.Windows.Controls.CheckBox;
+            var reuseWindowCheck = FindName("ReuseExplorerWindowsCheck") as System.Windows.Controls.CheckBox;
+            
+            if (reuseWindowCheck != null)
+            {
+                reuseWindowCheck.IsEnabled = openFolderCheck?.IsChecked == true;
+            }
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -42,6 +67,7 @@ namespace ExtractNow.Views
             var trayCheck = FindName("ShowTrayIconCheck") as System.Windows.Controls.CheckBox;
             var thresholdBox = FindName("ThresholdMbBox") as System.Windows.Controls.TextBox;
             var openFolderCheck = FindName("OpenFolderOnCompleteCheck") as System.Windows.Controls.CheckBox;
+            var reuseWindowCheck = FindName("ReuseExplorerWindowsCheck") as System.Windows.Controls.CheckBox;
             var closeAppCheck = FindName("CloseAppAfterExtractionCheck") as System.Windows.Controls.CheckBox;
             var restoreDefaultCheck = FindName("RestoreDefaultWindowSizeCheck") as System.Windows.Controls.CheckBox;
             var sevenZipPathBox = FindName("SevenZipPathBox") as System.Windows.Controls.TextBox;
@@ -57,6 +83,7 @@ namespace ExtractNow.Views
                 _settings.ShowWindowThresholdMB = 0;
             }
             _settings.OpenOutputFolderOnComplete = openFolderCheck?.IsChecked == true;
+            _settings.ReuseExplorerWindows = reuseWindowCheck?.IsChecked == true;
             _settings.CloseAppAfterExtraction = closeAppCheck?.IsChecked == true;
             _settings.RestoreDefaultWindowSizeOnRestart = restoreDefaultCheck?.IsChecked == true;
 
