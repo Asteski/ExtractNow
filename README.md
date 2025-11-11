@@ -27,10 +27,6 @@ Runtime (end users):
 For building from source:
 - .NET 8 SDK
 
-## Usage
-- Run the app and drag & drop an archive or click Extract.
-- To integrate with Explorer, use Settings to register per-user "Open with" for `.zip`, `.7z`, `.rar` (no default handler changes).
-
 ## Keyboard shortcuts
 - ctrl + ,  → Settings
 - ctrl + o  → Select archive
