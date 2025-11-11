@@ -24,9 +24,6 @@ Runtime (end users):
 - Windows 10/11 (x64 or ARM64)
 - No separate .NET install required (self-contained portable build)
 
-For building from source:
-- .NET 8 SDK
-
 ## Keyboard shortcuts
 - ctrl + ,  → Settings
 - ctrl + o  → Select archive
