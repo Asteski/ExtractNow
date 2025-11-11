@@ -20,7 +20,6 @@ ExtractNow is a portable WPF application that extracts archives instantly withou
 - **Keyboard shortcuts** for quick access (Settings, Extract, Open Folder, Cancel, Exit).
 
 ## Requirements
-Runtime (end users):
 - Windows 10/11 (x64 or ARM64)
 - No separate .NET install required (self-contained portable build)
 
