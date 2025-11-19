@@ -13,9 +13,9 @@
     <RootNamespace>ExtractNow</RootNamespace>
     <ApplicationIcon>assets\app.ico</ApplicationIcon>
     <!-- App semantic version; used for About dialog and dist archive names -->
-    <Version>1.2.0</Version>
+    <Version>1.3.0</Version>
   <!-- Force publish output to reuse existing Release/win-* folder structure (avoid net8.0-windows duplication) -->
-  <PublishDir>bin\$(Configuration)\$(RuntimeIdentifier)\</PublishDir>
+    <PublishDir>bin\$(Configuration)\$(RuntimeIdentifier)\</PublishDir>
   </PropertyGroup>
 
   <!-- Bundle any files in the local 7zip folder with the app output -->
