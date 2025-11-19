@@ -19,6 +19,9 @@ namespace ExtractNow.Services
             public bool OpenOutputFolderOnComplete { get; set; } = false; // default: off
             public bool CloseAppAfterExtraction { get; set; } = false; // default: off
             public bool ReuseExplorerWindows { get; set; } = false; // default: off (open in new window)
+            public bool EnableSizeThreshold { get; set; } = false; // default: off
+            public int MaxArchiveSizeMB { get; set; } = 1000; // default: 1000 MB
+            public string OversizedArchiveAction { get; set; } = "Explorer"; // "Explorer" or "7-Zip"
             // Window persistence (0 means unset / use defaults)
             // These properties are ALWAYS hidden from JSON but can still be read if manually added
             [JsonIgnore]
@@ -82,6 +85,24 @@ namespace ExtractNow.Services
         {
             get => _settings.ReuseExplorerWindows;
             set { _settings.ReuseExplorerWindows = value; Save(); }
+        }
+
+        public bool EnableSizeThreshold
+        {
+            get => _settings.EnableSizeThreshold;
+            set { _settings.EnableSizeThreshold = value; Save(); }
+        }
+
+        public int MaxArchiveSizeMB
+        {
+            get => _settings.MaxArchiveSizeMB;
+            set { _settings.MaxArchiveSizeMB = Math.Max(1, value); Save(); }
+        }
+
+        public string OversizedArchiveAction
+        {
+            get => _settings.OversizedArchiveAction;
+            set { _settings.OversizedArchiveAction = value; Save(); }
         }
 
         public int WindowWidth

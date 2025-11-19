@@ -39,6 +39,27 @@ namespace ExtractNow.Views
             if (FindName("RestoreDefaultWindowSizeCheck") is System.Windows.Controls.CheckBox restoreDefaultCheck)
                 restoreDefaultCheck.IsChecked = _settings.RestoreDefaultWindowSizeOnRestart;
             
+            // Initialize size threshold settings
+            if (FindName("EnableSizeThresholdCheck") is System.Windows.Controls.CheckBox enableThresholdCheck)
+                enableThresholdCheck.IsChecked = _settings.EnableSizeThreshold;
+            if (FindName("MaxArchiveSizeMBBox") is System.Windows.Controls.TextBox maxSizeBox)
+                maxSizeBox.Text = _settings.MaxArchiveSizeMB.ToString();
+            if (FindName("OversizedActionCombo") is System.Windows.Controls.ComboBox actionCombo)
+            {
+                // Select the appropriate ComboBoxItem based on saved setting
+                foreach (System.Windows.Controls.ComboBoxItem item in actionCombo.Items)
+                {
+                    if (item.Tag?.ToString() == _settings.OversizedArchiveAction)
+                    {
+                        actionCombo.SelectedItem = item;
+                        break;
+                    }
+                }
+                // Default to first item if nothing matched
+                if (actionCombo.SelectedItem == null && actionCombo.Items.Count > 0)
+                    actionCombo.SelectedIndex = 0;
+            }
+            
             // Initialize the enabled state of ReuseExplorerWindows based on OpenFolderOnComplete
             UpdateReuseExplorerWindowsState();
         }
@@ -71,6 +92,9 @@ namespace ExtractNow.Views
             var closeAppCheck = FindName("CloseAppAfterExtractionCheck") as System.Windows.Controls.CheckBox;
             var restoreDefaultCheck = FindName("RestoreDefaultWindowSizeCheck") as System.Windows.Controls.CheckBox;
             var sevenZipPathBox = FindName("SevenZipPathBox") as System.Windows.Controls.TextBox;
+            var enableThresholdCheck = FindName("EnableSizeThresholdCheck") as System.Windows.Controls.CheckBox;
+            var maxSizeBox = FindName("MaxArchiveSizeMBBox") as System.Windows.Controls.TextBox;
+            var actionCombo = FindName("OversizedActionCombo") as System.Windows.Controls.ComboBox;
 
             _settings.ShowWindowOnAssociationLaunch = showOnAssoc?.IsChecked == true;
             _settings.ShowTrayIconDuringExtraction = trayCheck?.IsChecked == true;
@@ -86,6 +110,21 @@ namespace ExtractNow.Views
             _settings.ReuseExplorerWindows = reuseWindowCheck?.IsChecked == true;
             _settings.CloseAppAfterExtraction = closeAppCheck?.IsChecked == true;
             _settings.RestoreDefaultWindowSizeOnRestart = restoreDefaultCheck?.IsChecked == true;
+
+            // Save size threshold settings
+            _settings.EnableSizeThreshold = enableThresholdCheck?.IsChecked == true;
+            if (int.TryParse(maxSizeBox?.Text.Trim() ?? string.Empty, out var maxSizeMB) && maxSizeMB > 0)
+            {
+                _settings.MaxArchiveSizeMB = maxSizeMB;
+            }
+            else
+            {
+                _settings.MaxArchiveSizeMB = 1000; // default
+            }
+            if (actionCombo?.SelectedItem is System.Windows.Controls.ComboBoxItem selectedItem)
+            {
+                _settings.OversizedArchiveAction = selectedItem.Tag?.ToString() ?? "Explorer";
+            }
 
             // Determine 7-Zip path from typed value (or default)
             var typed = sevenZipPathBox?.Text?.Trim() ?? string.Empty;
@@ -134,27 +173,10 @@ namespace ExtractNow.Views
             Close();
         }
 
-        private void CleanupAssocButton_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var removed = FileAssociations.CleanupAssociationRegistryEntries();
-                System.Windows.MessageBox.Show(this,
-                    removed > 0 ? $"Removed {removed} association-related entries from your user registry." : "No association entries found to remove.",
-                    "Cleanup complete",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(this, $"Failed to clean up entries: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
         private string GetDisplaySevenZipPath()
         {
-            // Always display the effective folder path without any suffix
-            var effective = _selectedSevenZipPath ?? System.IO.Path.Combine(AppContext.BaseDirectory, "7zip");
-            return effective;
+            // Display empty string when using default, otherwise show the custom path
+            return _selectedSevenZipPath ?? string.Empty;
         }
 
         private static bool IsValidSevenZipFolder(string folder)

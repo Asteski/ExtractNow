@@ -10,6 +10,9 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         
@@ -42,29 +45,49 @@
             </StackPanel>
         </GroupBox>
 
-        <!-- 7-Zip location selector -->
-        <GroupBox Grid.Row="2" Header="7-Zip location" Padding="8" Margin="0,0,0,8">
+        <!-- Archive Size Threshold -->
+        <GroupBox Grid.Row="2" Header="Archive size threshold" Padding="8" Margin="0,0,0,8">
             <StackPanel>
-                <TextBlock Text="Custom 7-Zip folder (leave empty to use bundled 7-Zip binaries)."/>
-                <Grid Margin="0,8,0,0">
+                <CheckBox x:Name="EnableSizeThresholdCheck"
+                          Content="Enable size threshold (skip extraction for large archives)"
+                          Margin="0,0,0,6"/>
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <TextBlock Text="Maximum archive size:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="MaxArchiveSizeMBBox" Width="80" Margin="8,0,8,0"/>
+                    <TextBlock Text="MB" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <TextBlock Text="When threshold exceeded, open with:" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <ComboBox x:Name="OversizedActionCombo" Width="150">
+                        <ComboBoxItem Content="Explorer" Tag="Explorer"/>
+                        <ComboBoxItem Content="7-Zip" Tag="7-Zip"/>
+                    </ComboBox>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 7-Zip location selector -->
+        <GroupBox Grid.Row="3" Header="7-Zip location" Padding="8" Margin="0,0,0,8">
+            <StackPanel>
+                <TextBox x:Name="SevenZipPathBox" HorizontalAlignment="Stretch"
+                         ToolTip="Custom 7-Zip folder (leave empty to use bundled 7-Zip binaries)."/>
+                <Grid Margin="0,4,0,0">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SevenZipPathBox" Grid.Column="0" Width="240" MinWidth="0" HorizontalAlignment="Left"
-                             ToolTip="Type or paste the folder that contains 7z.exe (or 7zG.exe) and 7z.dll. Leave empty to use the bundled 7zip folder."/>
-                    <Button Grid.Column="1" Content="Select…" Width="100" Margin="8,0,0,0" Click="SelectSevenZip_Click"/>
-                    <Button Grid.Column="2" Content="Restore default" Width="130" Margin="8,0,0,0" Click="RestoreSevenZip_Click"/>
+                    <TextBlock Grid.Column="0" Text="Leave empty to use bundled 7-Zip binaries" 
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                    <Button Grid.Column="1" Content="Select..." Width="100" Margin="8,0,8,0" Click="SelectSevenZip_Click"/>
+                    <Button Grid.Column="2" Content="Restore default" Width="130" Click="RestoreSevenZip_Click"/>
                 </Grid>
             </StackPanel>
         </GroupBox>
 
-        <GroupBox Grid.Row="3" Header="Maintenance" Padding="8" Margin="0,0,0,8">
+        <GroupBox Grid.Row="4" Header="Maintenance" Padding="8" Margin="0,0,0,8">
             <StackPanel>
-                <TextBlock Text="Remove any registry entries created by ExtractNow for file associations (per-user)." TextWrapping="Wrap"/>
-                <Button x:Name="CleanupAssocButton" Content="Remove association registry entries" Width="260" Margin="0,8,0,0" Click="CleanupAssocButton_Click"/>
-                <Separator Margin="0,12,0,12"/>
                 <CheckBox x:Name="RestoreDefaultWindowSizeCheck"
                           Content="Restore original window size on restart"
                           ToolTip="When enabled, the main window will open at default size (720x580) each time you start the app."
@@ -72,9 +95,11 @@
             </StackPanel>
         </GroupBox>
 
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Save" Width="100" Click="Save_Click" IsDefault="True"/>
-            <Button Content="Close" Width="100" Click="Close_Click" Margin="8,0,0,0" IsCancel="True"/>
-        </StackPanel>
+        <Grid Grid.Row="5" Margin="0,8,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Save" Width="100" Click="Save_Click" IsDefault="True"/>
+                <Button Content="Close" Width="100" Click="Close_Click" Margin="8,0,0,0" IsCancel="True"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Window>

@@ -239,6 +239,40 @@ namespace ExtractNow
                 return;
             }
 
+            // Check archive size threshold
+            if (_settings.EnableSizeThreshold)
+            {
+                var fileInfo = new FileInfo(archivePath);
+                var fileSizeMB = fileInfo.Length / (1024.0 * 1024.0);
+                
+                if (fileSizeMB > _settings.MaxArchiveSizeMB)
+                {
+                    AppendLog($"Archive size ({fileSizeMB:F2} MB) exceeds threshold ({_settings.MaxArchiveSizeMB} MB)");
+                    StatusText.Text = "Archive too large - opening instead";
+                    
+                    // Open with selected application
+                    if (_settings.OversizedArchiveAction == "7-Zip")
+                    {
+                        OpenArchiveWith7Zip(archivePath);
+                    }
+                    else
+                    {
+                        OpenArchiveWithExplorer(archivePath);
+                    }
+                    
+                    // Close app if that setting is enabled
+                    if (_settings.CloseAppAfterExtraction)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try { await Task.Delay(200); } catch { }
+                            try { Dispatcher.Invoke(() => Close()); } catch { }
+                        });
+                    }
+                    return;
+                }
+            }
+
             // 7-Zip is expected to be bundled under app's 7zip folder; Extractor will validate presence
 
             _cts = new CancellationTokenSource();
@@ -257,6 +291,15 @@ namespace ExtractNow
             try
             {
                 outDir = Path.Combine(Path.GetDirectoryName(archivePath)!, Path.GetFileNameWithoutExtension(archivePath));
+                
+                // If folder already exists, add timestamp suffix
+                if (Directory.Exists(outDir))
+                {
+                    string timestamp = DateTime.Now.ToString("yyMMdd\\THHmmss");
+                    string folderName = Path.GetFileNameWithoutExtension(archivePath);
+                    outDir = Path.Combine(Path.GetDirectoryName(archivePath)!, $"{folderName}_ExtractNow_{timestamp}");
+                }
+                
                 _currentOutputDir = outDir;
                 Directory.CreateDirectory(outDir);
                 AppendLog($"Output folder: {outDir}");
@@ -418,6 +461,67 @@ namespace ExtractNow
             }
             catch { }
             return false;
+        }
+
+        private void OpenArchiveWithExplorer(string archivePath)
+        {
+            try
+            {
+                AppendLog($"Opening archive with Explorer: {archivePath}");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = "explorer.exe",
+                    Arguments = $"/select,\"{archivePath}\"",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Failed to open archive with Explorer: {ex.Message}");
+            }
+        }
+
+        private void OpenArchiveWith7Zip(string archivePath)
+        {
+            try
+            {
+                // Resolve 7-Zip location: custom path from settings or app-local 7zip folder
+                string baseDir = AppContext.BaseDirectory;
+                string folder = !string.IsNullOrWhiteSpace(_settings.SevenZipPath) ? _settings.SevenZipPath! : Path.Combine(baseDir, "7zip");
+                
+                // Try 7zFM.exe (GUI file manager) first, then 7-Zip.exe, then 7zG.exe
+                string? sevenZipExe = null;
+                string[] possibleExes = { "7zFM.exe", "7-Zip.exe", "7zG.exe" };
+                
+                foreach (var exe in possibleExes)
+                {
+                    string exePath = Path.Combine(folder, exe);
+                    if (File.Exists(exePath))
+                    {
+                        sevenZipExe = exePath;
+                        break;
+                    }
+                }
+                
+                if (sevenZipExe == null)
+                {
+                    AppendLog("7-Zip GUI not found. Cannot open archive.");
+                    StatusText.Text = "7-Zip GUI not found";
+                    return;
+                }
+                
+                AppendLog($"Opening archive with 7-Zip: {archivePath}");
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = sevenZipExe,
+                    Arguments = $"\"{archivePath}\"",
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"Failed to open archive with 7-Zip: {ex.Message}");
+            }
         }
 
         private void OpenOutputButton_Click(object sender, RoutedEventArgs e)
