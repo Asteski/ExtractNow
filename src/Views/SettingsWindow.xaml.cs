@@ -18,6 +18,8 @@ namespace ExtractNow.Views
             _selectedSevenZipPath = string.IsNullOrWhiteSpace(_settings.SevenZipPath) ? null : _settings.SevenZipPath;
 
             // Defensive: if XAML names change, null checks avoid crashes.
+            if (FindName("AlwaysOnTopCheck") is System.Windows.Controls.CheckBox alwaysOnTopCheck)
+                alwaysOnTopCheck.IsChecked = _settings.AlwaysOnTop;
             if (FindName("ShowOnAssocCheck") is System.Windows.Controls.CheckBox showOnAssoc)
                 showOnAssoc.IsChecked = _settings.ShowWindowOnAssociationLaunch;
             if (FindName("ShowTrayIconCheck") is System.Windows.Controls.CheckBox trayCheck)
@@ -38,6 +40,8 @@ namespace ExtractNow.Views
                 sevenZipPathBox.Text = GetDisplaySevenZipPath();
             if (FindName("RestoreDefaultWindowSizeCheck") is System.Windows.Controls.CheckBox restoreDefaultCheck)
                 restoreDefaultCheck.IsChecked = _settings.RestoreDefaultWindowSizeOnRestart;
+            if (FindName("ShowNotificationOnCompleteCheck") is System.Windows.Controls.CheckBox notificationCheck)
+                notificationCheck.IsChecked = _settings.ShowNotificationOnComplete;
             
             // Initialize size threshold settings
             if (FindName("EnableSizeThresholdCheck") is System.Windows.Controls.CheckBox enableThresholdCheck)
@@ -84,6 +88,7 @@ namespace ExtractNow.Views
         {
             // Save window visibility preference only and close the settings window
             // Retrieve controls dynamically (robust to XAML regeneration issues)
+            var alwaysOnTopCheck = FindName("AlwaysOnTopCheck") as System.Windows.Controls.CheckBox;
             var showOnAssoc = FindName("ShowOnAssocCheck") as System.Windows.Controls.CheckBox;
             var trayCheck = FindName("ShowTrayIconCheck") as System.Windows.Controls.CheckBox;
             var thresholdBox = FindName("ThresholdMbBox") as System.Windows.Controls.TextBox;
@@ -91,11 +96,13 @@ namespace ExtractNow.Views
             var reuseWindowCheck = FindName("ReuseExplorerWindowsCheck") as System.Windows.Controls.CheckBox;
             var closeAppCheck = FindName("CloseAppAfterExtractionCheck") as System.Windows.Controls.CheckBox;
             var restoreDefaultCheck = FindName("RestoreDefaultWindowSizeCheck") as System.Windows.Controls.CheckBox;
+            var notificationCheck = FindName("ShowNotificationOnCompleteCheck") as System.Windows.Controls.CheckBox;
             var sevenZipPathBox = FindName("SevenZipPathBox") as System.Windows.Controls.TextBox;
             var enableThresholdCheck = FindName("EnableSizeThresholdCheck") as System.Windows.Controls.CheckBox;
             var maxSizeBox = FindName("MaxArchiveSizeMBBox") as System.Windows.Controls.TextBox;
             var actionCombo = FindName("OversizedActionCombo") as System.Windows.Controls.ComboBox;
 
+            _settings.AlwaysOnTop = alwaysOnTopCheck?.IsChecked == true;
             _settings.ShowWindowOnAssociationLaunch = showOnAssoc?.IsChecked == true;
             _settings.ShowTrayIconDuringExtraction = trayCheck?.IsChecked == true;
             if (int.TryParse(thresholdBox?.Text.Trim() ?? string.Empty, out var mb) && mb > 0)
@@ -110,6 +117,7 @@ namespace ExtractNow.Views
             _settings.ReuseExplorerWindows = reuseWindowCheck?.IsChecked == true;
             _settings.CloseAppAfterExtraction = closeAppCheck?.IsChecked == true;
             _settings.RestoreDefaultWindowSizeOnRestart = restoreDefaultCheck?.IsChecked == true;
+            _settings.ShowNotificationOnComplete = notificationCheck?.IsChecked == true;
 
             // Save size threshold settings
             _settings.EnableSizeThreshold = enableThresholdCheck?.IsChecked == true;

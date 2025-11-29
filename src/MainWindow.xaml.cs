@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Input;
 using System.Reflection;
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace ExtractNow
 {
@@ -40,6 +41,7 @@ namespace ExtractNow
         {
             InitializeComponent();
             _settings = new SettingsService();
+            Topmost = _settings.AlwaysOnTop;
             _extractor = new Extractor(_settings);
 
             Loaded += MainWindow_Loaded;
@@ -314,6 +316,7 @@ namespace ExtractNow
                     AppendLog("Extraction completed successfully.");
                     _extractionCompleted = true;
                     OpenOutputButton.IsEnabled = true; // enable manual open
+                    ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Success", outDir);
                     OpenOutputFolderIfEnabled(outDir);
 
                     if (_settings.CloseAppAfterExtraction)
@@ -329,17 +332,20 @@ namespace ExtractNow
                 {
                     StatusText.Text = "Failed";
                     AppendLog("Extraction failed: " + result.ErrorMessage);
+                    ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Error", null);
                 }
             }
             catch (OperationCanceledException)
             {
                 StatusText.Text = "Canceled";
                 AppendLog("Extraction canceled by user.");
+                ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Canceled", null);
             }
             catch (Exception ex)
             {
                 StatusText.Text = "Error";
                 AppendLog("Unexpected error: " + ex.Message);
+                ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Error", null);
             }
             finally
             {
@@ -354,6 +360,49 @@ namespace ExtractNow
         {
             LogBox.AppendText(text + Environment.NewLine);
             LogBox.ScrollToEnd();
+        }
+
+        private void ShowNotificationIfEnabled(string archiveFileName, string status, string? outDir)
+        {
+            try
+            {
+                if (!_settings.ShowNotificationOnComplete) return;
+
+                string title = status switch
+                {
+                    "Success" => "Extraction Complete",
+                    "Error" => "Extraction Failed",
+                    "Canceled" => "Extraction Canceled",
+                    _ => "Extraction Status"
+                };
+
+                string message = status switch
+                {
+                    "Success" => $"{archiveFileName} has been extracted successfully.",
+                    "Error" => $"Failed to extract {archiveFileName}.",
+                    "Canceled" => $"Extraction of {archiveFileName} was canceled.",
+                    _ => $"{archiveFileName}: {status}"
+                };
+
+                var builder = new ToastContentBuilder()
+                    .AddText(title)
+                    .AddText(message);
+
+                // Add activation args if successful and we have a folder
+                if (status == "Success" && !string.IsNullOrEmpty(outDir))
+                {
+                    builder.AddArgument("action", "openFolder")
+                           .AddArgument("folderPath", outDir);
+                }
+
+                builder.Show();
+
+                AppendLog($"Notification sent ({status}).");
+            }
+            catch (Exception ex)
+            {
+                AppendLog("Failed to show notification: " + ex.Message);
+            }
         }
 
         private void OpenOutputFolderIfEnabled(string? outDir)
@@ -569,6 +618,7 @@ namespace ExtractNow
             var wnd = new Views.SettingsWindow(_settings);
             wnd.Owner = this;
             wnd.ShowDialog();
+            Topmost = _settings.AlwaysOnTop;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

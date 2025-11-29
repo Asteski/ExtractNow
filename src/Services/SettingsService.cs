@@ -33,6 +33,8 @@ namespace ExtractNow.Services
             // When true, ignore persisted geometry and restore default window size on next launch
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
             public bool RestoreDefaultWindowSizeOnRestart { get; set; } = false;
+            public bool ShowNotificationOnComplete { get; set; } = true; // default: on
+            public bool AlwaysOnTop { get; set; } = true; // default: on
         }
 
     private Settings _settings;
@@ -40,7 +42,8 @@ namespace ExtractNow.Services
         public SettingsService()
         {
             // Portable location: alongside the executable (fully portable)
-            var baseDir = AppContext.BaseDirectory;
+            // Use Environment.ProcessPath to ensure we get the exe location even in single-file publish
+            var baseDir = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
             _portablePath = Path.Combine(baseDir, SettingsFileName);
             _settings = Load();
         }
@@ -127,6 +130,18 @@ namespace ExtractNow.Services
         {
             get => _settings.RestoreDefaultWindowSizeOnRestart;
             set { _settings.RestoreDefaultWindowSizeOnRestart = value; Save(); }
+        }
+
+        public bool ShowNotificationOnComplete
+        {
+            get => _settings.ShowNotificationOnComplete;
+            set { _settings.ShowNotificationOnComplete = value; Save(); }
+        }
+
+        public bool AlwaysOnTop
+        {
+            get => _settings.AlwaysOnTop;
+            set { _settings.AlwaysOnTop = value; Save(); }
         }
 
         private Settings Load()
