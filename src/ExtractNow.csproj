@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
     <UseWPF>true</UseWPF>
   <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
@@ -13,18 +13,34 @@
     <RootNamespace>ExtractNow</RootNamespace>
     <ApplicationIcon>assets\app.ico</ApplicationIcon>
     <!-- App semantic version; used for About dialog and dist archive names -->
-    <Version>1.3.0</Version>
+    <Version>1.4.0</Version>
+    <!-- Optimize startup performance -->
+    <PublishReadyToRun>true</PublishReadyToRun>
   <!-- Force publish output to reuse existing Release/win-* folder structure (avoid net8.0-windows duplication) -->
     <PublishDir>bin\$(Configuration)\$(RuntimeIdentifier)\</PublishDir>
   </PropertyGroup>
+
+  <!-- NuGet package references -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+  </ItemGroup>
 
   <!-- Bundle any files in the local 7zip folder with the app output -->
   <ItemGroup>
     <Content Include="7zip\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    <None Include="assets\app.ico" />
+    
+    <!-- Notification assets (must be on disk) -->
+    <Content Include="assets\app.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+
+    <!-- Window Icons (must be Resources for WPF Pack URIs) -->
+    <Resource Include="assets\app.ico" />
     <Resource Include="assets\settings.ico" />
     <Resource Include="assets\about.ico" />
   </ItemGroup>

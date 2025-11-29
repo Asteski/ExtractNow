@@ -18,6 +18,7 @@ ExtractNow is a portable WPF application that extracts archives instantly withou
   - Set threshold for archives size to be ignored by ExtractNow, and to be opened in alternative ways instead - either File Explorer or 7-Zip.
   - Restore original window size on restart.
 - **"Open extracted folder…"** button enabled after success.
+- **Always on top** and **Show notifications** options.
 - **Keyboard shortcuts** for quick access (Settings, Extract, Open Folder, Cancel, Exit).
 
 ## Requirements
