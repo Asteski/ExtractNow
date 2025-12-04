@@ -1,6 +1,6 @@
 # ExtractNow
 
-ExtractNow is a portable WPF application that extracts archives instantly without displaying additional windows. It comes bundled with 7-Zip and provides self-contained builds for Windows x64 and ARM64.
+ExtractNow is a Windows application that extracts archives instantly without displaying additional windows. It comes bundled with 7-Zip and provides self-contained builds for Windows x64 and ARM64.
 
 ![ExtractNow](https://raw.githubusercontent.com/Asteski/ExtractNow/refs/heads/main/img/img.png)
 
