@@ -1,6 +1,6 @@
 # ExtractNow
 
-ExtractNow is an application that extracts archives instantly without displaying additional windows. It comes bundled with 7-Zip and provides self-contained builds for Windows x64 and ARM64.
+ExtractNow is an application that extracts archives instantly without displaying additional windows. It comes bundled with 7-Zip and provides self-contained builds for both Windows x86 and ARM.
 
 ![ExtractNow](https://raw.githubusercontent.com/Asteski/ExtractNow/refs/heads/main/img/img.png)
 
