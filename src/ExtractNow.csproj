@@ -13,9 +13,7 @@
     <RootNamespace>ExtractNow</RootNamespace>
     <ApplicationIcon>assets\app.ico</ApplicationIcon>
     <!-- App semantic version; used for About dialog and dist archive names -->
-    <Version>1.4.0</Version>
-    <!-- Optimize startup performance -->
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <Version>1.4.1</Version>
   <!-- Force publish output to reuse existing Release/win-* folder structure (avoid net8.0-windows duplication) -->
     <PublishDir>bin\$(Configuration)\$(RuntimeIdentifier)\</PublishDir>
   </PropertyGroup>
@@ -30,17 +28,11 @@
     <Content Include="7zip\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </Content>
-    
-    <!-- Notification assets (must be on disk) -->
     <Content Include="assets\app.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
-
-    <!-- Window Icons (must be Resources for WPF Pack URIs) -->
-    <Resource Include="assets\app.ico" />
     <Resource Include="assets\settings.ico" />
     <Resource Include="assets\about.ico" />
   </ItemGroup>
@@ -107,7 +99,7 @@
 
     <!-- Create zip (force overwrite) -->
     <Message Text="Zipping $(PublishDir) -> $(DistFile)" Importance="high" />
-    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path '$(PublishDir)*' -DestinationPath '$(DistFile)' -Force&quot;" />
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Get-ChildItem -Path '$(PublishDir)' -Exclude '*.pdb' | Compress-Archive -DestinationPath '$(DistFile)' -Force&quot;" />
 
     <!-- Append SHA256 checksum line -->
     <PropertyGroup>

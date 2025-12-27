@@ -2,8 +2,6 @@ using System;
 using System.Windows;
 using System.IO;
 using ExtractNow.Services;
-using Microsoft.Toolkit.Uwp.Notifications;
-using System.Diagnostics;
 
 namespace ExtractNow
 {
@@ -11,36 +9,6 @@ namespace ExtractNow
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            // Global exception handling to catch crashes in Release builds
-            DispatcherUnhandledException += (s, args) =>
-            {
-                System.Windows.MessageBox.Show($"An unhandled exception occurred: {args.Exception.Message}\n\n{args.Exception.StackTrace}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                args.Handled = true;
-            };
-
-            // Listen to notification activation
-            ToastNotificationManagerCompat.OnActivated += toastArgs =>
-            {
-                // Obtain the arguments from the notification
-                ToastArguments args = ToastArguments.Parse(toastArgs.Argument);
-                if (args.TryGetValue("action", out string action) && action == "openFolder")
-                {
-                    if (args.TryGetValue("folderPath", out string folderPath) && Directory.Exists(folderPath))
-                    {
-                        try
-                        {
-                            Process.Start(new ProcessStartInfo
-                            {
-                                FileName = "explorer.exe",
-                                Arguments = $"\"{folderPath}\"",
-                                UseShellExecute = true
-                            });
-                        }
-                        catch { }
-                    }
-                }
-            };
-
             base.OnStartup(e);
             var settings = new SettingsService();
 
