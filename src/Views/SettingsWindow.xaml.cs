@@ -18,8 +18,6 @@ namespace ExtractNow.Views
             _selectedSevenZipPath = string.IsNullOrWhiteSpace(_settings.SevenZipPath) ? null : _settings.SevenZipPath;
 
             // Defensive: if XAML names change, null checks avoid crashes.
-            if (FindName("AlwaysOnTopCheck") is System.Windows.Controls.CheckBox alwaysOnTopCheck)
-                alwaysOnTopCheck.IsChecked = _settings.AlwaysOnTop;
             if (FindName("ShowOnAssocCheck") is System.Windows.Controls.CheckBox showOnAssoc)
                 showOnAssoc.IsChecked = _settings.ShowWindowOnAssociationLaunch;
             if (FindName("ShowTrayIconCheck") is System.Windows.Controls.CheckBox trayCheck)
@@ -88,7 +86,6 @@ namespace ExtractNow.Views
         {
             // Save window visibility preference only and close the settings window
             // Retrieve controls dynamically (robust to XAML regeneration issues)
-            var alwaysOnTopCheck = FindName("AlwaysOnTopCheck") as System.Windows.Controls.CheckBox;
             var showOnAssoc = FindName("ShowOnAssocCheck") as System.Windows.Controls.CheckBox;
             var trayCheck = FindName("ShowTrayIconCheck") as System.Windows.Controls.CheckBox;
             var thresholdBox = FindName("ThresholdMbBox") as System.Windows.Controls.TextBox;
@@ -102,7 +99,6 @@ namespace ExtractNow.Views
             var maxSizeBox = FindName("MaxArchiveSizeMBBox") as System.Windows.Controls.TextBox;
             var actionCombo = FindName("OversizedActionCombo") as System.Windows.Controls.ComboBox;
 
-            _settings.AlwaysOnTop = alwaysOnTopCheck?.IsChecked == true;
             _settings.ShowWindowOnAssociationLaunch = showOnAssoc?.IsChecked == true;
             _settings.ShowTrayIconDuringExtraction = trayCheck?.IsChecked == true;
             if (int.TryParse(thresholdBox?.Text.Trim() ?? string.Empty, out var mb) && mb > 0)

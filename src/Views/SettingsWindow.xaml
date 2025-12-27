@@ -17,11 +17,8 @@
 
         
 
-        <GroupBox Grid.Row="1" Header="General settings" Padding="8" Margin="0,0,0,8">
+        <GroupBox Grid.Row="1" Header="Progress window" Padding="8" Margin="0,0,0,8">
             <StackPanel>
-                <CheckBox x:Name="AlwaysOnTopCheck"
-                          Content="Always on top"
-                          Margin="0,0,0,6"/>
                 <CheckBox x:Name="ShowOnAssocCheck"
                           Content="Show progress window when launched by double-click"
                           Margin="0,0,0,0"/>
@@ -45,9 +42,6 @@
                 <CheckBox x:Name="CloseAppAfterExtractionCheck"
                           Content="Close ExtractNow after extraction"
                           Margin="0,6,0,0"/>
-                <CheckBox x:Name="ShowNotificationOnCompleteCheck"
-                          Content="Show Windows notification when extraction completes"
-                          Margin="0,6,0,0"/>
             </StackPanel>
         </GroupBox>
 
@@ -65,7 +59,7 @@
                 <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                     <TextBlock Text="When threshold exceeded, open with:" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <ComboBox x:Name="OversizedActionCombo" Width="150">
-                        <ComboBoxItem Content="File Explorer" Tag="Explorer"/>
+                        <ComboBoxItem Content="Explorer" Tag="Explorer"/>
                         <ComboBoxItem Content="7-Zip" Tag="7-Zip"/>
                     </ComboBox>
                 </StackPanel>
@@ -98,6 +92,9 @@
                           Content="Restore original window size on restart"
                           ToolTip="When enabled, the main window will open at default size (720x580) each time you start the app."
                           />
+                <CheckBox x:Name="ShowNotificationOnCompleteCheck"
+                          Content="Show Windows notification when extraction completes"
+                          Margin="0,6,0,0"/>
             </StackPanel>
         </GroupBox>
 

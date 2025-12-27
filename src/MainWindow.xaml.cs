@@ -13,7 +13,8 @@ using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Input;
 using System.Reflection;
-using Microsoft.Toolkit.Uwp.Notifications;
+using Windows.Data.Xml.Dom;
+using Windows.UI.Notifications;
 
 namespace ExtractNow
 {
@@ -41,7 +42,6 @@ namespace ExtractNow
         {
             InitializeComponent();
             _settings = new SettingsService();
-            Topmost = _settings.AlwaysOnTop;
             _extractor = new Extractor(_settings);
 
             Loaded += MainWindow_Loaded;
@@ -316,7 +316,7 @@ namespace ExtractNow
                     AppendLog("Extraction completed successfully.");
                     _extractionCompleted = true;
                     OpenOutputButton.IsEnabled = true; // enable manual open
-                    ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Success", outDir);
+                    ShowNotificationIfEnabled(Path.GetFileName(archivePath), outDir);
                     OpenOutputFolderIfEnabled(outDir);
 
                     if (_settings.CloseAppAfterExtraction)
@@ -332,20 +332,17 @@ namespace ExtractNow
                 {
                     StatusText.Text = "Failed";
                     AppendLog("Extraction failed: " + result.ErrorMessage);
-                    ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Error", null);
                 }
             }
             catch (OperationCanceledException)
             {
                 StatusText.Text = "Canceled";
                 AppendLog("Extraction canceled by user.");
-                ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Canceled", null);
             }
             catch (Exception ex)
             {
                 StatusText.Text = "Error";
                 AppendLog("Unexpected error: " + ex.Message);
-                ShowNotificationIfEnabled(Path.GetFileName(archivePath), "Error", null);
             }
             finally
             {
@@ -362,42 +359,43 @@ namespace ExtractNow
             LogBox.ScrollToEnd();
         }
 
-        private void ShowNotificationIfEnabled(string archiveFileName, string status, string? outDir)
+        private void ShowNotificationIfEnabled(string archiveFileName, string? outDir)
         {
             try
             {
                 if (!_settings.ShowNotificationOnComplete) return;
 
-                string title = status switch
+                // Build custom toast XML with app logo override
+                var appIconPath = Path.Combine(AppContext.BaseDirectory, "assets", "app.ico");
+                if (!File.Exists(appIconPath))
                 {
-                    "Success" => "Extraction Complete",
-                    "Error" => "Extraction Failed",
-                    "Canceled" => "Extraction Canceled",
-                    _ => "Extraction Status"
-                };
-
-                string message = status switch
-                {
-                    "Success" => $"{archiveFileName} has been extracted successfully.",
-                    "Error" => $"Failed to extract {archiveFileName}.",
-                    "Canceled" => $"Extraction of {archiveFileName} was canceled.",
-                    _ => $"{archiveFileName}: {status}"
-                };
-
-                var builder = new ToastContentBuilder()
-                    .AddText(title)
-                    .AddText(message);
-
-                // Add activation args if successful and we have a folder
-                if (status == "Success" && !string.IsNullOrEmpty(outDir))
-                {
-                    builder.AddArgument("action", "openFolder")
-                           .AddArgument("folderPath", outDir);
+                    AppendLog($"Icon not found at: {appIconPath}");
                 }
 
-                builder.Show();
+                string launchAttribute = "";
+                if (!string.IsNullOrEmpty(outDir) && Directory.Exists(outDir))
+                {
+                    var uri = new Uri(outDir).AbsoluteUri;
+                    launchAttribute = $"activationType='protocol' launch='{uri}'";
+                }
 
-                AppendLog($"Notification sent ({status}).");
+                var toastXmlString = $@"<toast {launchAttribute}>
+    <visual>
+        <binding template='ToastGeneric'>
+            <text>Extraction Complete</text>
+            <text>{archiveFileName} has been extracted successfully.</text>
+            <image placement='appLogoOverride' hint-crop='circle' src='file:///{appIconPath.Replace("\\", "/")}' />
+        </binding>
+    </visual>
+</toast>";
+
+                var toastXml = new Windows.Data.Xml.Dom.XmlDocument();
+                toastXml.LoadXml(toastXmlString);
+
+                var toast = new ToastNotification(toastXml);
+                var notifier = ToastNotificationManager.CreateToastNotifier("ExtractNow");
+                notifier.Show(toast);
+                AppendLog("Notification sent.");
             }
             catch (Exception ex)
             {
@@ -618,7 +616,6 @@ namespace ExtractNow
             var wnd = new Views.SettingsWindow(_settings);
             wnd.Owner = this;
             wnd.ShowDialog();
-            Topmost = _settings.AlwaysOnTop;
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
