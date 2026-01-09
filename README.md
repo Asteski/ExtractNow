@@ -5,7 +5,7 @@ ExtractNow is an application that extracts archives instantly without displaying
 ![ExtractNow](https://raw.githubusercontent.com/Asteski/ExtractNow/refs/heads/main/img/img.png)
 
 ## Features
-- **Open with double-click** via file association or by drag & drop.
+- **Extract with double-click** via file association or by drag & drop.
 - **Extracts to a sibling folder** named after the archive (e.g., `file.zip` → `file/`).
 - **Resizable main window** with automatic size persistence (optional restore-to-default on restart).
 - **Progress with live log** and confirmation prompt before cancel.
